@@ -1,44 +1,30 @@
-// rt macro feature  
-// fs operations  (file system async opertion )
-//process -> asynchrpnous process managemmet in tokio
-// signalS signal
-// rt- multi thread
+mod types;
+mod market_data;
+mod orderbook;
+mod indicators;
+mod worker;
 
+use std::sync::Arc;
+use flume;
 
-
-//cargo add tokio --features=macro
-// cmd :btop to get information about this runnig like threading and all 
-#[tokio::main(flavor ="current_thread" , workers_thread=10)]
+#[tokio::main]
 async fn main() {
-    //test_something().await
+    println!("🚀 Real-time Trading Engine Started (Public WebSockets)");
+    println!("Listening to BTC, ETH, SOL live data...\n");
 
+    // Channel for data flow
+    let (tx, rx) = flume::unbounded();
 
+    // Shared OrderBook
+    let orderbook = Arc::new(orderbook::OrderBook::new());
+
+    // Start WebSocket Feed
+    tokio::spawn(market_data::start_websocket_feed(tx));
+
+    // Start Workers (Multithreading)
+    tokio::spawn(worker::start_workers(rx, orderbook));
+
+    // Keep main thread alive
+    tokio::signal::ctrl_c().await.unwrap();
+    println!("\nShutting down gracefully...");
 }
-
-// async fn test_something(){
-//     std::thread::sleep(dur::std::time::duration::from_mills(5000));
-//     println!("Intialised Sleep")
-
-// }
-
-
-//implementing raisers and futures
-
-struct F1racer {
-    name:String,
-    completed_laps:u8,
-    laps:u8,
-    best_lap_time :u8,
-    lap_time:Vec<u8>
-}
-
-impl Fi1Racer {
-    fn F1racer()->Racer{
-        return F1Racer{
-            name:volkWagen.to_string(), completed_laps:20,laps:10,best_lap_time:10, lap_time:vec![34u8, 34, 123,78]
-        };
-
-    }
-}
-
-impl std::future::future::Future
